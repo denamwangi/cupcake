@@ -66,11 +66,14 @@ def handle_slash_command():
 
     requesting_user_id = request.form.get('user_id')
     command = request.form.get('text')
+    response_url = request.form.get('response_url')
 
     # TODO this will prob be necessary once we start storing data
     # user_info = slack.get_user_info(requesting_user_id))
 
-    return jsonify(slack.process_slash_command(requesting_user_id, command))
+    return slack.process_slash_command(requesting_user_id,
+                                       command,
+                                       response_url)
 
 
 if __name__ == "__main__":

@@ -1,5 +1,8 @@
-from slackclient import SlackClient
+import json
 import re
+from flask import jsonify
+import requests
+from slackclient import SlackClient
 
 
 def oxfordize(strings):
@@ -47,7 +50,7 @@ class SlackHelper(object):
                                            text=text,
                                            username="cupcake"))
 
-    def process_slash_command(self, requesting_user, command):
+    def process_slash_command(self, requesting_user, command, response_url):
         """Process the incoming command, and either return an error message
            or the results of the command."""
 
@@ -58,24 +61,33 @@ class SlackHelper(object):
 
         # check for the keyword "for" so we know it's safe to split on it
         if " for " not in command:
-            return ERROR_RESPONSE_BODY
+            return jsonify(ERROR_RESPONSE_BODY)
         users, reason = command.split(" for ")
 
         # make sure there are recipents
         recipients = re.findall(r"<@U\S*>", users)
         if not recipients:
-            return ERROR_RESPONSE_BODY
+            return jsonify(ERROR_RESPONSE_BODY)
 
         # if everything seems in order, return a valid response
-        return {
-            "text":
+        # (we're doing it this way vs just returning the json so the user's
+        #  original slash command will disappear)
+        requests.post(response_url, json.dumps(
+            {
+                "text":
                 "<@{user_id}> gave a cupcake to {users} for {reason}".format(
                     user_id=requesting_user,
                     users=oxfordize(recipients),
                     reason=reason),
-            "response_type": "in_channel",
-            "attachments": [{"text": "Thanks for giving cupcakes!"}],
-        }
+                "response_type": "in_channel",
+                # "attachments": [{"text": "Thanks for giving cupcakes!"}],
+            }))
+
+        # because you have to return something, even though the real response
+        # is in the post request above - an empty response makes Slack not
+        # post a "visible only to you" message in addition to the in-channel
+        # message
+        return ("", 200)
 
 
 #############
