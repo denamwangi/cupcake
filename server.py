@@ -18,6 +18,14 @@ def get_user_info(user_id):
         token=slack_token
     )
 
+def post_to_slack(text):
+    """ Convenience method to make it easier to post to slack. Might generalize even more e.g. pass in channel
+        printing so we can see the output - this can be taken out once everything's working
+    """
+    pprint.pprint(
+        slack_client.api_call("chat.postMessage",
+                              channel="CC32SU9DE",
+                              text=text, username="cupcake"))
 
 def oxfordize(strings):
     """Given a list of strings, formats them correctly given the length of the
@@ -40,17 +48,14 @@ def oxfordize(strings):
 @app.route("/")
 def show_index():
     # pprint.pprint(slack_client.api_call("channels.list"))
-
+    test = "Hello from actual cupcake! :tada:"
+    post_to_slack(test)
     return "click <a href='/test-message'>here</a> to send a test message"
 
 
 @app.route("/test-message")
 def send_test_message():
-    # printing so we can see the output - this can be taken out once everything's working
-    pprint.pprint(
-        slack_client.api_call("chat.postMessage",
-                              channel="CC32SU9DE",
-                              text="Hello from actual cupcake! :tada:", username="cupcake"))
+
     return redirect("/")
 
 
@@ -60,8 +65,6 @@ def process_github_webhook():
     valid_actions = ['opened', 'closed']
     if request.method != 'POST':
         return Response('noooopes\n', status=405)
-
-    start = datetime.utcnow()
 
     try:
         data = json.loads(request.data)
