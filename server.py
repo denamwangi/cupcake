@@ -3,6 +3,7 @@ from slackclient import SlackClient
 import os
 import re
 import pprint
+import requests
 
 app = Flask(__name__)
 
@@ -17,6 +18,7 @@ def get_user_info(user_id):
         user=user_id,
         token=slack_token
     )
+
 
 def post_to_slack(text):
     """ Convenience method to make it easier to post to slack. Might generalize even more e.g. pass in channel
@@ -82,6 +84,20 @@ def process_github_webhook():
         ('Access-Control-Allow-Origin', '*'),
     ))
 
+def get_repo_info():
+    """ Grabs all the authors and their number of commits to the repo
+        returns {'author_name': int no_of_commits}
+    """
+    request_url = 'https://api.github.com/repos/denamwangi/CupCake/commits'
+    response = json.loads(requests.get(request_url).content)
+
+    committers = {}
+    for each_commit in response:
+        import ipdb; ipdb.set_trace()
+        author = each_commit['author']['login']
+        committers[author] = committers.get(author, 0) + 1
+
+    return committers
 
 @app.route("/slash-test", methods=["POST"])
 def handle_slash_command():
