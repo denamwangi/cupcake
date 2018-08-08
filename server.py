@@ -1,23 +1,11 @@
 from flask import Flask, request, jsonify, redirect, Response, json
-from slackclient import SlackClient
 import os
-import re
 import pprint
 import requests
+from slack_utils import SlackHelper
 
 app = Flask(__name__)
-
-# TODO probably factor all slack setup stuff out into it's own file/class(?)
-slack_token = os.environ["BOT_USER_ACCESS_TOKEN"]
-slack_client = SlackClient(slack_token)
-
-
-def get_user_info(user_id):
-    return slack_client.api_call(
-        "users.info",
-        user=user_id,
-        token=slack_token
-    )
+slack = SlackHelper(os.environ["BOT_USER_ACCESS_TOKEN"])
 
 
 def get_repo_info():
@@ -36,47 +24,10 @@ def get_repo_info():
     return committers
 
 
-def post_to_slack(text):
-    """ Convenience method to make it easier to post to slack. Might generalize
-        even more e.g. pass in channel printing so we can see the output - this
-        can be taken out once everything's working
-    """
-    pprint.pprint(
-        slack_client.api_call("chat.postMessage",
-                              channel="CC32SU9DE",
-                              text=text, username="cupcake"))
-
-
-def oxfordize(strings):
-    """Given a list of strings, formats them correctly given the length of the
-    list. For example:
-        oxfordize(['A'])  =>  'A'
-        oxfordize(['A', 'B'])  =>  'A and B'
-        oxfordize(['A', 'B', 'C'])  =>  'A, B, and C'
-    """
-
-    if len(strings) == 0:
-        return ''
-    elif len(strings) == 1:
-        return strings[0]
-    elif len(strings) == 2:
-        return '%s and %s' % (strings[0], strings[1])
-    else:
-        return '%s, and %s' % (', '.join(strings[:-1]), strings[-1])
-
-
 @app.route("/")
 def show_index():
     # pprint.pprint(slack_client.api_call("channels.list"))
-
     return "click <a href='/test-message'>here</a> to send a test message"
-
-
-@app.route("/test-message")
-def send_test_message():
-    test = "Hello from actual cupcake! :tada:"
-    post_to_slack(test)
-    return redirect("/")
 
 
 @app.route("/github", methods=['POST'])
@@ -96,45 +47,30 @@ def process_github_webhook():
 
     text = "Sup' {} just {} an issue in this repo".format(
         sender['login'], action)
-    post_to_slack(text)
+    slack.post_message(text)
 
     return Response(status=201, headers=(
         ('Access-Control-Allow-Origin', '*'),
     ))
 
 
+@app.route("/test-message")
+def send_test_message():
+    slack.post_message("Hello from the cupcake app! :tada:")
+    return redirect("/")
+
+
 @app.route("/slash-cupcake", methods=["POST"])
 def handle_slash_command():
-    ERROR_RESPONSE_BODY = {
-        "text": "Sorry, I didn't understand that. Please use the format `/cupcake to <@user(s)> for <doing something great>`.",
-        "response_type": "ephemeral",
-    }
+    """Respond to a /cupcake command"""
 
     requesting_user_id = request.form.get('user_id')
-    # requesting_user_info = get_user_info(requesting_user_id)
-    command_text = request.form.get('text')
+    command = request.form.get('text')
 
-    # check for the keyword "for" so we know it's safe to split on it
-    if " for " not in command_text:
-        return jsonify(ERROR_RESPONSE_BODY)
-    users, reason = command_text.split(" for ")
+    # TODO this will prob be necessary once we start storing data
+    # user_info = slack.get_user_info(requesting_user_id))
 
-    # make sure there are recipents
-    recipients = re.findall(r"<@U\S*>", users)
-    if not recipients:
-        return jsonify(ERROR_RESPONSE_BODY)
-
-    # if everything seems in order, respond
-    return jsonify({
-        "text": "<@{user_id}> gave a cupcake to {users} for {reason}".format(
-            user_id=requesting_user_id,
-            users=oxfordize(recipients),
-            reason=reason),
-        "response_type": "in_channel",
-        "attachments": [{
-            "text": "Thanks for giving cupcakes!"
-        }],
-    })
+    return jsonify(slack.process_slash_command(requesting_user_id, command))
 
 
 if __name__ == "__main__":
