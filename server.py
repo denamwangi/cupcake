@@ -48,14 +48,14 @@ def oxfordize(strings):
 @app.route("/")
 def show_index():
     # pprint.pprint(slack_client.api_call("channels.list"))
-    test = "Hello from actual cupcake! :tada:"
-    post_to_slack(test)
+
     return "click <a href='/test-message'>here</a> to send a test message"
 
 
 @app.route("/test-message")
 def send_test_message():
-
+    test = "Hello from actual cupcake! :tada:"
+    post_to_slack(test)
     return redirect("/")
 
 
@@ -74,8 +74,9 @@ def process_github_webhook():
     action = data.get('action', None)
     sender = data.get('sender', None)
 
-    print "HI HI {} just {} an issue in this repo".format(
+    text = "Sup' {} just {} an issue in this repo".format(
         sender['login'], action)
+    post_to_slack(text)
 
     return Response(status=201, headers=(
         ('Access-Control-Allow-Origin', '*'),
