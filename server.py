@@ -19,6 +19,7 @@ def get_user_info(user_id):
         token=slack_token
     )
 
+
 def get_repo_info():
     """ Grabs all the authors and their number of commits to the repo
         returns {'author_name': int no_of_commits}
@@ -34,14 +35,17 @@ def get_repo_info():
 
     return committers
 
+
 def post_to_slack(text):
-    """ Convenience method to make it easier to post to slack. Might generalize even more e.g. pass in channel
-        printing so we can see the output - this can be taken out once everything's working
+    """ Convenience method to make it easier to post to slack. Might generalize
+        even more e.g. pass in channel printing so we can see the output - this
+        can be taken out once everything's working
     """
     pprint.pprint(
         slack_client.api_call("chat.postMessage",
                               channel="CC32SU9DE",
                               text=text, username="cupcake"))
+
 
 def oxfordize(strings):
     """Given a list of strings, formats them correctly given the length of the
@@ -99,29 +103,38 @@ def process_github_webhook():
     ))
 
 
-@app.route("/slash-test", methods=["POST"])
+@app.route("/slash-cupcake", methods=["POST"])
 def handle_slash_command():
+    ERROR_RESPONSE_BODY = {
+        "text": "Sorry, I didn't understand that. Please use the format `/cupcake to <@user(s)> for <doing something great>`.",
+        "response_type": "ephemeral",
+    }
+
     requesting_user_id = request.form.get('user_id')
-    command_text = request.form.get('text')
-    mentioned_users = re.findall(r"<@U\S*>", command_text)
-
-    # TODO enforce the 'for'ness with a try and return error message if it didn't work
-    reason = command_text.split(" for ")[-1]
-
     # requesting_user_info = get_user_info(requesting_user_id)
+    command_text = request.form.get('text')
 
-    response_body = {
+    # check for the keyword "for" so we know it's safe to split on it
+    if " for " not in command_text:
+        return jsonify(ERROR_RESPONSE_BODY)
+    users, reason = command_text.split(" for ")
+
+    # make sure there are recipents
+    recipients = re.findall(r"<@U\S*>", users)
+    if not recipients:
+        return jsonify(ERROR_RESPONSE_BODY)
+
+    # if everything seems in order, respond
+    return jsonify({
         "text": "<@{user_id}> gave a cupcake to {users} for {reason}".format(
             user_id=requesting_user_id,
-            users=oxfordize(mentioned_users),
+            users=oxfordize(recipients),
             reason=reason),
         "response_type": "in_channel",
         "attachments": [{
             "text": "Thanks for giving cupcakes!"
         }],
-    }
-
-    return jsonify(response_body)
+    })
 
 
 if __name__ == "__main__":
