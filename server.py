@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, redirect
+from flask import Flask, request, jsonify, redirect, Response, json
 from slackclient import SlackClient
 import os
 import re
@@ -52,6 +52,31 @@ def send_test_message():
                               channel="CC32SU9DE",
                               text="Hello from actual cupcake! :tada:", username="cupcake"))
     return redirect("/")
+
+
+@app.route("/github", methods=['POST'])
+def process_github_webhook():
+    # github sends us the issue, sender, repo, and action
+    valid_actions = ['opened', 'closed']
+    if request.method != 'POST':
+        return Response('noooopes\n', status=405)
+
+    start = datetime.utcnow()
+
+    try:
+        data = json.loads(request.data)
+    except Exception:
+        return Response('ayooo this is not json\n', status=400)
+
+    action = data.get('action', None)
+    sender = data.get('sender', None)
+
+    print "HI HI {} just {} an issue in this repo".format(
+        sender['login'], action)
+
+    return Response(status=201, headers=(
+        ('Access-Control-Allow-Origin', '*'),
+    ))
 
 
 @app.route("/slash-test", methods=["POST"])
