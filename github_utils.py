@@ -3,20 +3,43 @@ import os
 import pprint
 import requests
 
+def check_milestone(event_type, sender, repo, slack):
+    if event_type == 'pull_request_review':
+        reviews = get_repo_reviews()
+        user_review_count = reviews.get(sender, None)
+        print "*****This user {} has {} PR's reviewed in {} yaaayyyy!".format(sender, user_review_count, repo)
+        if user_review_count == 1 or user_review_count == 100:
+            text = "Yasss! Congrats to {} for reviewing PR #{} in the {} repo!!!!".format(
+                    sender, user_review_count, repo)
+            slack.post_message(text)
+    elif event_type == 'push':
+        committers = get_repo_commits()
+        user_commit_count = committers.get(sender, None)
+        print "*****This user {} has {} commits merged in {} yaaayyyy!".format(sender, user_commit_count, repo)
+        if user_commit_count == 0 or user_commit_count == 100:
+            text = "Yasss! Congrats to {} for merging in PR #{} into {}!!!!".format(
+                    sender, user_commit_count, repo)
+            slack.post_message(text)
+
 
 def get_repo_commits():
     """ Grabs all the authors and their number of commits to the repo
         returns {'author_name': int no_of_commits}
     """
-    request_url = 'https://api.github.com/repos/denamwangi/CupCake/commits'
+    request_url = 'https://api.github.com/repos/denamwangi/skills_flask/commits'
     response = json.loads(requests.get(request_url).content)
 
     committers = {}
     for each_commit in response:
         # import ipdb; ipdb.set_trace()
-        author = each_commit['author']['login']
-        committers[author] = committers.get(author, 0) + 1
-
+        # author = each_commit['author']['login']
+        author = each_commit.get('author', {}).get('login', None)
+        committer = each_commit.get('commit', {}).get('committer', {}).get('name', None)
+        # print "each commit", each_commit
+        print author, committer
+        if committer == "GitHub":
+            committers[author] = committers.get(author, 0) + 1
+    print "**pulled all the commits yo", committers
     return committers
 
 
