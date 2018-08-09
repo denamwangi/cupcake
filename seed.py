@@ -1,4 +1,4 @@
-from model import db, connect_to_db, User, Cupcake, UserCupcake, Role
+from model import db, connect_to_db, User, Cupcake, UserCupcake
 
 
 def load_users():
@@ -14,17 +14,7 @@ def load_users():
     print "users added"
 
 
-def load_roles():
-
-    for role in ["sender", "recipient"]:
-        new_role = Role(role=role)
-        db.session.add(new_role)
-
-    db.session.commit()
-    print "roles added"
-
-
-# TODO this is not done!!
+# TODO add more
 def load_cupcakes():
     """Add sample cupcakes to the DB"""
 
@@ -34,8 +24,8 @@ def load_cupcakes():
                       recipients=[dena, carol])
     db.session.add(cupcake)
     db.session.commit()
-    # UserCupcake.mark_sender(cupcake, katie)
-    # UserCupcake.mark_recipients(cupcake, [dena, carol])
+    UserCupcake.mark_sender(cupcake, katie)
+    UserCupcake.mark_recipients(cupcake, [dena, carol])
 
     db.session.commit()
     print "cupcakes added"
@@ -48,5 +38,4 @@ if __name__ == "__main__":
 
     db.create_all()
     load_users()
-    load_roles()
     load_cupcakes()
