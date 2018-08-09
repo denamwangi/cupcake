@@ -8,6 +8,17 @@ import github_utils as gh
 app = Flask(__name__)
 slack = SlackHelper(os.environ["BOT_USER_ACCESS_TOKEN"])
 
+# TODO[DENA]: add check for 1st and 100th commit, and 100th review
+def check_milestone(event_type, sender):
+    if event_type == 'pull_request_review':
+        reviews = gh.get_repo_reviews()
+        user_review_count = reviews.get(sender, None)
+        print "*****This user {} has {} prs reviewed yaaayyyy!".format(sender, user_review_count)
+        if user_review_count == 1:
+            text = "Yasss! Congrats to {} for reviewing their first PR!!!!".format(
+                    sender)
+            slack.post_message(text)
+
 
 @app.route("/")
 def show_index():
@@ -18,6 +29,7 @@ def show_index():
 @app.route("/github", methods=['POST'])
 def process_github_webhook():
     # github sends us the event, sender, repo, and action. The type of event is in the header.
+    # TODO: Switch this to a dict with keys being actions specific to the event
     valid_actions = ['submitted', 'opened', 'closed']
     valid_events = ['pull_request_review', 'commits']
 
@@ -28,15 +40,16 @@ def process_github_webhook():
         data = json.loads(request.data)
     except Exception:
         return Response('ayooo this is not json\n', status=400)
-    print "********Github webhook come thruuuu:", data
 
-    # TODO[Dena]: add a check to see if this is the first/nth commit or review
     action = data.get('action', None)
-    sender = data.get('sender', None)
+    sender = data.get('sender', {}).get('login', None)
+    print "********Github webhook come thruuuu:"
+    print "event type", event_type
+    print "action",  action
+    print "sender",  sender
 
-    text = "Sup' {} just {} an issue in this repo".format(
-        sender['login'], action)
-    slack.post_message(text)
+    if event_type in valid_events:
+        check_milestone(event_type, sender)
 
     return Response(status=201, headers=(
         ('Access-Control-Allow-Origin', '*'),
