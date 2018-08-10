@@ -114,6 +114,26 @@ class Cupcake(db.Model):
                                recipients=[r.name for r in self.recipients],
                                reason=self.reason)
 
+    @classmethod
+    def make_cupcake(cls, reason, sender, recipients):
+        """A convenience method for making cupcakes, since the UserCupcakes
+           have to be updated manually in order for sender/recipient roles
+           to get recorded. Returns the cupcake already committed to the DB."""
+
+        # make sure recipients were passed in as a list, and wrap if not
+        if not isinstance(recipients, list):
+            recipients = [recipients]
+
+        cupcake = cls(reason=reason,
+                      sender=sender,
+                      recipients=recipients)
+        db.session.add(cupcake)
+        db.session.commit()
+        UserCupcake.mark_sender(cupcake, sender)
+        UserCupcake.mark_recipients(cupcake, recipients)
+
+        return cupcake
+
 
 ##############################################################################
 # Helper functions

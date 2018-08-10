@@ -19,19 +19,10 @@ def load_cupcakes():
     """Add sample cupcakes to the DB"""
 
     katie, dena, maya, kiko, carol = User.query.all()
+    Cupcake.make_cupcake("being awesome", katie, [dena, carol])
+    Cupcake.make_cupcake("doing the thing", dena, kiko)
+    Cupcake.make_cupcake("rooting for the Sox", katie, [dena, maya])
 
-    # when creating a cupcake, you need to add it, with sender and recipients,
-    # commit, then call UserCupcake.mark_sender() and
-    # UserCupcake.mark_recipients() to get those into the DB
-    cupcake = Cupcake(reason="being awesome",
-                      sender=katie,
-                      recipients=[dena, carol])
-    db.session.add(cupcake)
-    db.session.commit()
-    UserCupcake.mark_sender(cupcake, katie)
-    UserCupcake.mark_recipients(cupcake, [dena, carol])
-
-    db.session.commit()
     print "cupcakes added"
 
 
