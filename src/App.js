@@ -2,12 +2,13 @@ import React, { Component } from 'react';
 import './App.css';
 import Givers from './givers.jsx';
 import Receivers from './receivers.jsx';
-import cupcakeLogo from './cupcake.jpg'
+import cupcakeLogo from './cupcake.jpg';
+
 
 class App extends Component {
   render() {
     return (
-      <div className="App">
+      <div>
         <div>
           <img src={cupcakeLogo} alt="cupcake" height="128" width="128"/>
         </div>

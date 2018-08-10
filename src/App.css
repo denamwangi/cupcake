@@ -58,11 +58,22 @@
 .cupcake-count {
   font-size: 1.5em;
 }
+
 .main-container {
   /*max-width: 1140px;*/
   padding-right: 15px;  
   padding-left: 15px;
   margin-left: 150px;
+
+  .detailed-container {
+    margin-right: 150px;
+  }
+}
+.detailed-employee {
+  margin: auto;
+  .ul {
+    font-size: 2em;
+  }
 }
 
 @keyframes App-logo-spin {

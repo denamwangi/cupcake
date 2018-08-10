@@ -14,7 +14,6 @@ class Employee extends Component {
                 <span>
                     <p className="cupcake-count">{cupcakes}</p>
                     <img src={cupcakeLogo} alt="cupcake" height="64" width="64"/>
-                    
                 </span>
             </div>
         </div>
