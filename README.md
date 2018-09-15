@@ -9,7 +9,7 @@ Leaderboard UI
 ## Installation
 ``` $ pip install -r requirements.txt```
 
-```$ npm install``
+```$ npm install```
 
 To run the local webserver:
 ``` $ npm start ```
