@@ -1,0 +1,38 @@
+{
+  "name": "CupCake",
+  "version": "1.0.0",
+  "description": "A slack bot that integrates with github's API and pings a channel when a team member does a thing so we can celebrate their win",
+  "main": "src/index.js",
+  "dependencies": {
+    "babel-cli": "^6.26.0",
+    "babel-preset-react-app": "^3.1.2",
+    "react": "^16.5.1",
+    "react-dom": "^16.5.1",
+    "react-hot-loader": "^4.3.8",
+    "uglify-es": "^3.3.9"
+  },
+  "devDependencies": {
+    "babel-loader": "^7.1.4",
+    "css-loader": "^0.28.11",
+    "style-loader": "^0.21.0",
+    "webpack": "^4.12.0",
+    "webpack-cli": "^3.0.8",
+    "webpack-dev-server": "^3.1.4"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "webpack-dev-server --mode development",
+    "build": "webpack --mode development"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/denamwangi/CupCake.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/denamwangi/CupCake/issues"
+  },
+  "homepage": "https://github.com/denamwangi/CupCake#readme"
+}
